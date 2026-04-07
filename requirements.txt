@@ -1,4 +1,4 @@
-streamlit==1.37.1
-yt-dlp==2026.3.17
+streamlit
+yt-dlp
 requests
 urllib3
