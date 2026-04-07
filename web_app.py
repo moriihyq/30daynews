@@ -54,21 +54,36 @@ if st.button("开始调研与深度总结 🚀", type="primary"):
     if not topic.strip():
         st.warning("⚠️ 请先输入你想调研的词哦~")
     else:
-        st.info("步骤 1/2：正在海外各大技术社区拉取近30天数百篇新鲜数据... (这需要大约1分半的时间，请不要锁屏离开)")
+        st.info("步骤 1/2：正在海外各大技术社区拉取近30天数百篇新鲜数据... (这需要大约1.5-3分钟的时间，随时为您播报后台进度)")
         
         # 建立一个 Spinner 等待状态
-        with st.spinner("⏳ 底层爬虫爬取、打分与去重清洗中..."):
+        with st.spinner("⏳ 底层爬虫跨平台抓取、打分与去重清洗中..."):
             try:
-                # 调用原始命令行
-                result = subprocess.run(
+                # 建立一个日志容器，实时滚动流式输出，防止 WebSocket 断连导致手机掉线
+                log_expander = st.expander("🕵️ 展开查看后台爬虫实时进度 (防止锁屏掉线)", expanded=True)
+                log_container = log_expander.empty()
+                logs = ""
+                
+                # 使用 Popen 实时流式读取 stdout
+                process = subprocess.Popen(
                     [sys.executable, "scripts/last30days.py", topic],
-                    capture_output=True,
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.STDOUT,
                     text=True,
-                    encoding='utf-8' # 防止GBK报错
+                    encoding='utf-8',
+                    bufsize=1 # Line buffered
                 )
                 
-                with st.expander("展开查看底层国外多渠道抓取详细日志"):
-                    st.text(result.stdout)
+                # 实时刷新防止手机端 WebSocket 超时断开连接
+                for line in iter(process.stdout.readline, ''):
+                    logs += line
+                    # 只保留最后两千个字符以免造成手机卡顿
+                    log_container.text(logs[-2000:])
+                
+                process.stdout.close()
+                process.wait()
+                
+                log_expander.update(expanded=False)
                 
                 output_file = Path.home() / ".local" / "share" / "last30days" / "out" / "report.md"
                 
