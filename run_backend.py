@@ -3,8 +3,11 @@ import json
 import subprocess
 from pathlib import Path
 import requests
+import os  
 
-GEMINI_API_KEY = "AIzaSyCYqV0y-RuzJOwqRbP6EZVaq8fgUmlaX_Y"
+GEMINI_API_KEY = os.getenv("GEMINI_API_KEY")
+if not GEMINI_API_KEY:
+    raise ValueError("错误: 未找到 GEMINI_API_KEY 环境变量，请检查 GitHub Action 配置。")
 GEMINI_MODEL = "gemini-3-flash-preview"
 
 def get_chinese_summary(text):
